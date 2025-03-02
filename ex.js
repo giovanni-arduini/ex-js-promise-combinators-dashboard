@@ -1,43 +1,49 @@
+async function fetchJson(url){
+    const response = await fetch(url);
+    const obj = await response.json();
+    return obj
+}
+
 async function getDashboardData(city){
-    let destination = {}
 
-    const destinationResponse =  (await fetch(`https://boolean-spec-frontend.vercel.app/freetestapi/destinations?search=${city}`)).json()
-    // let destData = await destinationResponse.json()
-    // destination.city = destData[0].name
-    destination.country = destinationResponse[0].country
-   
+    const destinationPromise =  (await fetchJson(`https://boolean-spec-frontend.vercel.app/freetestapi/destinations?search=${city}`))
+ 
+    const weathersPromise =  (await fetchJson(`https://boolean-spec-frontend.vercel.app/freetestapi/weathers?search=${city}`))
 
-    const weatherResponse = await fetch(`https://boolean-spec-frontend.vercel.app/freetestapi/weathers?search=${city}`)
-    let weather = await weatherResponse.json()
-    destination.temperature = weather[0].temperature
-    destination.weather = weather[0].weather_description
+    const airportsPromise =  (await fetchJson(`https://boolean-spec-frontend.vercel.app/freetestapi/airports?search=${city}`)) 
 
-    const airportsResponse = await fetch(`https://boolean-spec-frontend.vercel.app/freetestapi/airports?search=${city}`)
-    let airports = await airportsResponse.json()
-    destination.airport = airports[0].name
+    const promises = [destinationPromise, weathersPromise, airportsPromise]
+    const [destinations, weathers, airports] = await Promise.all(promises)
 
-    return destination
+    return {
+        city: destinations[0].name,
+        country: destinations[0].country,
+        temperature: weathers[0].temperature,
+        weather: weathers[0].weather_description,
+        airport: airports[0].name
+    }
+
 }
 
 
-(async()=>{
-    try{
-        const dashboard = await getDashboardData("london")
-        console.log(dashboard)
-    }catch(error){
-        console.error(error)
-    }
-})()
+// (async()=>{
+//     try{
+//         const dashboard = await getDashboardData("london")
+//         console.log(dashboard)
+//     }catch(error){
+//         console.error(error)
+//     }
+// })()
 
 
 
-// getDashboardData('london')
-//     .then(data => {
-//         console.log('Dasboard data:', data);
-//         console.log(
-//             `${data.city} is in ${data.country}.\n` +
-//             `Today there are ${data.temperature} degrees and the weather is ${data.weather}.\n`+
-//             `The main airport is ${data.airport}.\n`
-//         );
-//     })
-//     .catch(error => console.error(error));
+getDashboardData('london')
+    .then(data => {
+        console.log('Dasboard data:', data);
+        console.log(
+            `${data.city} is in ${data.country}.\n` +
+            `Today there are ${data.temperature} degrees and the weather is ${data.weather}.\n`+
+            `The main airport is ${data.airport}.\n`
+        );
+    })
+    .catch(error => console.error(error));
